@@ -3,6 +3,15 @@
 
 This project serves as an educational guide for Laravel developers looking to create modern, efficient, and flexible Docker environments for both development and production. It demonstrates best practices in building Docker images tailored for Laravel applications, providing a solid foundation for developers to understand and extend Docker functionalities in their own projects.
 
+## Current roadmap
+- Adjust example app to provide simple page with demonstrating phpinfo(), as well as health check of redis and database.
+- Polish production example to optimize build
+- Polish docker compose for production
+- Setup Dockerignore
+- Check env replacement. Add env encryption example.
+- Add debugger for devel environment.
+- Examples with Laravel Octane.
+
 ## Table of Contents
 
 - [Overview](#overview)
