@@ -9,6 +9,7 @@
 **/.env
 **/.git
 **/.gitignore
+**/.gitattributes
 **/.project
 **/.settings
 **/.toolstarget
@@ -31,5 +32,15 @@
 **/secrets.dev.yaml
 **/values.dev.yaml
 **/vendor
+**/.DS_Store
+.editorconfig
+.env.example
 LICENSE
 README.md
+
+# Ignore development-related files and directories
+# For development environment, we will use mount bind to mount the source code to the container
+# So we don't need to copy the source code to the container for development
+tests/
+phpunit.xml
+phpunit.xml.dist
