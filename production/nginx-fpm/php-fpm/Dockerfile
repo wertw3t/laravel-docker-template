@@ -81,7 +81,13 @@ COPY --from=builder /usr/local/lib/php/extensions/ /usr/local/lib/php/extensions
 COPY --from=builder /usr/local/etc/php/conf.d/ /usr/local/etc/php/conf.d/
 COPY --from=builder /usr/local/bin/docker-php-ext-* /usr/local/bin/
 
-# Use the default production configuration for PHP runtime arguments
+# Use the recommended production PHP configuration
+# -----------------------------------------------------------
+# PHP provides development and production configurations.
+# Here, we replace the default php.ini with the production
+# version to apply settings optimized for performance and
+# security in a live environment.
+# -----------------------------------------------------------
 RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
 # Enable PHP-FPM status page by modifying zz-docker.conf with sed
