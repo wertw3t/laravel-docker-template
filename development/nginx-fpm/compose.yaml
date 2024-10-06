@@ -1,41 +1,54 @@
 services:
   web:
     image: nginx:latest # We don't need to customize the image. Just pass the configuration to the Dockerfile.
-    networks:
-      - laravel
     volumes:
-      - ${LARAVEL_APP_PATH}/nginx.conf:/etc/nginx/nginx.conf:ro  # Mount the nginx.conf file directly
+      # Mount the application code for live updates
       - ${LARAVEL_APP_PATH}:/var/www
+      # Mount the Nginx configuration file
+      - ${LARAVEL_APP_PATH}/nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
+      # Map port 80 inside the container to the port specified by 'NGINX_PORT' on the host machine
       - "${NGINX_PORT}:80"
     environment:
       - NGINX_HOST=${NGINX_HOST}
+    networks:
+      - laravel
+    depends_on:
+      php-fpm:
+        condition: service_started  # Wait for php-fpm to start
 
   php-fpm:
     # For the php-fpm service, we will create a custom image to install the necessary PHP extensions and setup proper permissions.
     build:
-      context: ./php-fpm
-      dockerfile: Dockerfile
+      context: ../../example-app
+      dockerfile: ../development/nginx-fpm/php-fpm/Dockerfile
       args:
         UID: ${UID}
         GID: ${GID}
     env_file:
+      # Load the environment variables from the Laravel application
       - ${LARAVEL_APP_PATH}/.env
     volumes:
+      # Mount the application code for live updates
       - ${LARAVEL_APP_PATH}:/var/www
+    ports:
+      - "9004:9003"  # Xdebug port
     networks:
       - laravel
+    depends_on:
+      postgres:
+        condition: service_started  # Wait for postgres to start
 
   workspace:
    # For the workspace service, we will also create a custom image to install and setup all the necessary stuff.
     build:
-      context: ./workspace
-      dockerfile: Dockerfile
+      context: ../../example-app
+      dockerfile: ../development/nginx-fpm/workspace/Dockerfile
       args:
         UID: ${UID}
         GID: ${GID}
-    tty: true   # Keep the terminal open
-    stdin_open: true  # Keep stdin open to attach to the container
+    tty: true  # Enables an interactive terminal
+    stdin_open: true  # Keeps standard input open for 'docker exec'
     env_file:
       - ${LARAVEL_APP_PATH}/.env
     volumes:
@@ -46,11 +59,11 @@ services:
   postgres:
     image: postgres:16
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT}:5432"
     environment:
-      - POSTGRES_DB=${DB_DATABASE}
-      - POSTGRES_USER=${DB_USERNAME}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DATABASE}
+      - POSTGRES_USER=${POSTGRES_USERNAME}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     networks:

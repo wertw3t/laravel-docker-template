@@ -7,6 +7,11 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/info', function () {
+    Log::info('Phpinfo page visited');
+    return phpinfo();
+});
+
 Route::get('/health', function () {
     $status = [];
 

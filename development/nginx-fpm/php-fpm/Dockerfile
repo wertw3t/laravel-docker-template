@@ -1,24 +1,44 @@
-# Stage 1: Build environment
-FROM php:8.3-fpm AS builder
+# For development environment we can use one-stage build for simplicity.
+FROM php:8.3-fpm
 
-# Install system dependencies and build libraries
+# Install system dependencies and PHP extensions required for Laravel + MySQL/PostgreSQL support
+# Some dependencies are required for PHP extensions only in the build stage
+# We don't need to install Node.js or build assets, as it was done in the Nginx image
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
-    # libpq-dev is required for PostgreSQL
+    unzip \
     libpq-dev \
     libonig-dev \
     libssl-dev \
     libxml2-dev \
     libcurl4-openssl-dev \
+    libicu-dev \
+    libzip-dev \
     && docker-php-ext-install -j$(nproc) \
-    # PHP Extensions required for Laravel. See https://laravel.com/docs/11.x/deployment#server-requirements
-    # Most of these extensions are already included in the base image.
+    pdo_mysql \
     pdo_pgsql \
     pgsql \
-    && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    opcache \
+    intl \
+    zip \
+    bcmath \
+    soap \
+    && pecl install redis xdebug \
+    && docker-php-ext-enable redis xdebug\
+    && apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Stage 2: Runtime environment
-FROM php:8.3-fpm
+# Configure Xdebug by appending settings to the existing INI file
+RUN echo "xdebug.mode=develop,coverage,debug,profile" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.idekey=docker" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.start_with_request=yes" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.log=/dev/stdout" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.log_level=0" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.client_port=9003" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.client_host=host.docker.internal" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+
+# Copy the initialization script
+COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Set environment variables for user and group ID
 ARG UID=1000
@@ -28,17 +48,14 @@ ARG GID=1000
 RUN groupadd -g ${GID} www && \
     useradd -u ${UID} -g www -m www
 
-# Copy only the necessary PHP extensions from the build stage
-COPY --from=builder /usr/local/lib/php/extensions/no-debug-non-zts-*/ /usr/local/lib/php/extensions/no-debug-non-zts-*/
-
 # Set working directory
 WORKDIR /var/www
 
 # Change ownership of the working directory to the new user
 RUN chown -R www:www /var/www
 
-# Switch to the non-root user
-USER www
+# Change the default command to run the entrypoint script
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 # Expose port 9000 and start php-fpm server
 EXPOSE 9000
