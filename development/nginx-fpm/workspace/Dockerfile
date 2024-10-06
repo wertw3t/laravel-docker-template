@@ -11,11 +11,14 @@ RUN apt-get update && apt-get install -y \
     curl \
     git \
     sudo \
+    unzip \
     libpq-dev \
     libonig-dev \
     libssl-dev \
     libxml2-dev \
     libcurl4-openssl-dev \
+    libicu-dev \
+    libzip-dev \
     && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
     && curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash \
     && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

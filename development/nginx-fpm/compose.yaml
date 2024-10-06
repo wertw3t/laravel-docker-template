@@ -4,7 +4,7 @@ services:
     networks:
       - laravel
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro  # Mount the nginx.conf file directly
+      - ${LARAVEL_APP_PATH}/nginx.conf:/etc/nginx/nginx.conf:ro  # Mount the nginx.conf file directly
       - ${LARAVEL_APP_PATH}:/var/www
     ports:
       - "${NGINX_PORT}:80"
@@ -19,6 +19,8 @@ services:
       args:
         UID: ${UID}
         GID: ${GID}
+    env_file:
+      - ${LARAVEL_APP_PATH}/.env
     volumes:
       - ${LARAVEL_APP_PATH}:/var/www
     networks:
@@ -34,6 +36,8 @@ services:
         GID: ${GID}
     tty: true   # Keep the terminal open
     stdin_open: true  # Keep stdin open to attach to the container
+    env_file:
+      - ${LARAVEL_APP_PATH}/.env
     volumes:
       - ${LARAVEL_APP_PATH}:/var/www
     networks:

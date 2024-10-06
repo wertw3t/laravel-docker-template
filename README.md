@@ -1,131 +1,181 @@
-# Laravel Dockerize Project
-## Overview
-
-This project serves as an educational guide for Laravel developers looking to create modern, efficient, and flexible Docker environments for both development and production. It demonstrates best practices in building Docker images tailored for Laravel applications, providing a solid foundation for developers to understand and extend Docker functionalities in their own projects.
-
-## Current roadmap
-- Adjust example app to provide simple page with demonstrating phpinfo(), as well as health check of redis and database.
-- Polish production example to optimize build
-- Polish docker compose for production
-- Setup Dockerignore
-- Check env replacement. Add env encryption example.
-- Add debugger for devel environment.
-- Examples with Laravel Octane.
+# Laravel Docker Examples Project
 
 ## Table of Contents
 
 - [Overview](#overview)
 - [Project Structure](#project-structure)
-- [Development Environment](#development-environment)
-- [Key Features](#key-features)
+  - [Example App](#example-app)
+  - [Development Environment](#development-environment)
+  - [Production Environment](#production-environment)
 - [Getting Started](#getting-started)
+  - [Clone the Repository](#clone-the-repository)
+  - [Setting Up the Development Environment](#setting-up-the-development-environment)
 - [Usage](#usage)
-- [Production Environment](#production-environment)
-- [Building the Production Image](#building-the-production-image)
-- [Deploying](#deploying)
+- [Production Environment](#production-environment-1)
+  - [Building and Running the Production Environment](#building-and-running-the-production-environment)
 - [Technical Details](#technical-details)
 - [Contributing](#contributing)
+  - [How to Contribute](#how-to-contribute)
 - [License](#license)
+
+
+## Overview
+
+The **Laravel Docker Examples Project** provides practical examples and comprehensive guidance for Laravel developers to create modern, efficient, and flexible Docker environments for both development and production. By demonstrating best practices and offering detailed configurations, this project helps you build Docker images tailored for Laravel applications. Whether you're new to Docker or looking to optimize your deployment workflow, these examples serve as a solid foundation to understand and extend Docker functionalities in your Laravel projects.
+
 
 ## Project Structure
 
-The project is divided into three main parts: example Laravel 11 app used to test docker environments,
-development environment and production environment.
+The project is organized into the following main directories:
+
+- **example-app**: Contains a sample Laravel 11 application used to test and demonstrate Docker environments.
+- **development**: Includes Docker configurations and Compose files for setting up a complete development environment.
+- **production**: Contains Dockerfiles and Compose files optimized for a production environment.
+
+### example-app
+
+The `example-app` directory holds the sample Laravel application. It includes basic routes, a health check endpoint to test database and Redis connections, and demonstrates how to integrate Laravel with Docker. This serves as a practical example to illustrate the concepts discussed in this project.
 
 ### Development Environment
 
-Focuses on providing a flexible and independent environment that includes all necessary tools for typical Laravel development, such as Redis, MariaDB/PostgreSQL, and Node.js for building frontend assets. This environment supports rapid development and testing.
+Located in the `development` directory, this environment focuses on providing a flexible and independent setup that includes all necessary tools for typical Laravel development:
+
+- **Services**: PHP-FPM, Nginx, Node.js, Redis, and PostgreSQL.
+- **Hot Reloading**: Supports live reloading of code changes without rebuilding containers.
+- **Custom Dockerfiles**: Allows customization of images to include extensions and tools needed for development.
+- **Docker Compose**: Orchestrates the various services, making it easy to start and stop the entire environment.
 
 ### Production Environment
 
-Emphasizes building a slim, secure, and efficient Docker image suitable for deploying a Laravel application in production. The image is optimized for performance, with pre-built assets and only essential dependencies.
+The `production` directory emphasizes building a slim, secure, and efficient Docker image suitable for deploying a Laravel application in production:
 
-## Key Features
+- **Optimized Images**: Uses multi-stage builds to keep the final image size small.
+- **Pre-Built Assets**: Assets are compiled during the build process to ensure the container is ready to serve content immediately.
+- **Security Best Practices**: Minimizes the attack surface by excluding unnecessary packages and users.
+- **Docker Compose for Production**: Provides a Compose file tailored for deploying the application with services like Nginx, PHP-FPM, Redis, and PostgreSQL.
 
-### Development Environment
-
-- Complete Development Stack: Includes PHP, MySQL/PostgreSQL, Redis, and Node.js.
-- Hot-Reloading: Supports live reloading of code changes for rapid development.
-- Service Flexibility: Easily swap out or add services (e.g., switching between MySQL and PostgreSQL).
-- Persistent Volumes: Code changes are reflected immediately without rebuilding containers.
-
-### Production Environment
-
-- Optimized Image: The production image is slim, containing only the necessary dependencies for running a Laravel application.
-- Pre-Built Assets: Assets are built during the image creation process, ensuring that the production environment is ready to serve content immediately.
-- Security Best Practices: The image is built with security in mind, minimizing the attack surface by excluding unnecessary packages and users.
 
 ## Getting Started
 
-To get started with this project, follow these steps:
+Follow these steps to set up and run the Laravel Docker Examples Project:
 
-1. Clone the Repository:
+### Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/laravel-dockerize.git
-cd laravel-dockerize
+git clone https://github.com/rw4lll/laravel-docker-examples.git
+cd laravel-docker-examples
 ```
 
-2. Start the Development Environment:
+### Setting Up the Development Environment
+
+1. Navigate to the specific example in Development Directory:
 
 ```bash
-cd development/
-docker-compose up -d
+cd development/nginx-fpm
 ```
 
-3. Install Laravel Dependencies:
+2. Copy the .env.example file to .env and adjust any necessary environment variables:
 
 ```bash
-docker-compose exec workspace bash
+cp .env.example .env
+```
+
+3. Start the Docker Compose Services:
+
+```bash
+docker compose up -d
+```
+
+4. Install Laravel Dependencies:
+
+```bash
+docker compose exec workspace bash
 composer install
 npm install
 npm run dev
 ```
 
-4. Access the Application:
+5. Run Migrations:
+
+```bash
+docker compose exec workspace php artisan migrate
+```
+
+6. Access the Application:
 
 Open your browser and navigate to [http://localhost](http://localhost).
 
 ## Usage
 
-### Access the Workspace Container:
+Here are some common commands and tips for using the development environment:
+
+### Accessing the Workspace Container
+
+The workspace container includes Composer, Node.js, NPM, and other tools necessary for development.
 
 ```bash
-docker-compose exec workspace bash
+docker compose exec workspace bash
 ```
 
 ### Run Artisan Commands:
 
 ```bash
-docker-compose exec workspace php artisan migrate
+docker compose exec workspace php artisan migrate
 ```
 
 ### Rebuild Containers:
 
 ```bash
-docker-compose up -d --build
+docker compose up -d --build
+```
+
+### Stop Containers:
+
+```bash
+docker compose down
+```
+
+### View Logs:
+
+```bash
+docker compose logs -f
+```
+
+For specific services, you can use:
+
+```bash
+docker compose logs -f web
 ```
 
 ## Production Environment
 
-### Key Features
+The production environment is designed with security and efficiency in mind:
 
-- Optimized Image: The production image is slim, containing only the necessary dependencies for running a Laravel application.
-- Pre-Built Assets: Assets are built during the image creation process, ensuring that the production environment is ready to serve content immediately.
-- Security Best Practices: The image is built with security in mind, minimizing the attack surface by excluding unnecessary packages and users.
+- **Optimized Docker Images**: Uses multi-stage builds to minimize the final image size, reducing the attack surface.
+- **Environment Variables Management**: Sensitive data such as passwords and API keys are managed carefully to prevent exposure.
+- **User Permissions**: Containers run under non-root users where possible to follow the principle of least privilege.
+- **Health Checks**: Implemented to monitor the status of services and ensure they are functioning correctly.
+- **HTTPS Setup**: While not included in this example, it's recommended to configure SSL certificates and use HTTPS in a production environment.
 
-### Building the Production Image
 
-1. Build the Image:
+### Building and Running the Production Environment
+
+1. **Navigate to the specific example in Production Directory :**
 
 ```bash
-docker build -f Dockerfile.prod -t laravel-app:latest .
+cd production/nginx-fpm/
 ```
 
-2. Run the Container:
+2. Copy the .env.example file to .env (compose env, not the laravel env file) and adjust any necessary environment variables:
 
 ```bash
-docker run -d -p 9000:9000 laravel-app:latest
+cp .env.example .env
+```
+
+3. Start the Docker Compose Services:
+
+```bash
+docker compose up -d
 ```
 
 ### Deploying
@@ -134,30 +184,41 @@ The production image can be deployed to any Docker-compatible hosting environmen
 
 ## Technical Details
 
-- PHP: Version 8.3 FPM is used for optimal performance in production.
-- Node.js: Version 18.x is used in development for building frontend assets with Vite.
-- MySQL/PostgreSQL: Both databases are supported, allowing flexibility depending on your application's requirements.
-- Redis: Integrated for caching and session management.
+- **PHP**: Version **8.3 FPM** is used for optimal performance in both development and production environments.
+- **Node.js**: Version **22.x** is used in the development environment for building frontend assets with Vite.
+- **PostgreSQL**: Version **16** is used as the database in the examples, but you can adjust the configuration to use MySQL if preferred.
+- **Redis**: Used for caching and session management, integrated into both development and production environments.
+- **Nginx**: Used as the web server to serve the Laravel application and handle HTTP requests.
+- **Docker Compose**: Orchestrates the services, simplifying the process of starting and stopping the environment.
+- **Health Checks**: Implemented in the Docker Compose configurations and Laravel application to ensure all services are operational.
+
 
 ## Contributing
 
-Contributions are welcome! Please follow these steps to contribute:
+Contributions are welcome! Whether you find a bug, have an idea for improvement, or want to add a new feature, your input is valuable.
 
-1. Fork the Repository: Click the "Fork" button at the top right of this page.
-2. Clone Your Fork:
+### How to Contribute
+
+1. **Fork the Repository:**
+
+   Click the "Fork" button at the top right of this page to create your own copy of the repository.
+
+2. **Clone Your Fork:**
 
 ```bash
-git clone https://github.com/yourusername/laravel-dockerize.git
-cd laravel-dockerize
+    git clone https://github.com/your-user-name/laravel-docker-examples.git
+    cd laravel-docker-examples
 ```
 
 3. Create a Branch:
 
 ```bash
-git checkout -b feature-branch
+    git checkout -b your-feature-branch
 ```
 
 4. Make Your Changes.
+
+    Implement your changes or additions.
 
 5. Commit Your Changes:
 
@@ -168,11 +229,14 @@ git commit -m "Description of changes"
 6. Push to Your Fork:
 
 ```bash
-git push origin feature-branch
+    git push origin feature-branch
 ```
 
-7. Create a Pull Request: Navigate to the original repository and create a new pull request.
+7. Submit a Pull Request:
+    - Go to the original repository.
+    - Click on "Pull Requests" and then "New Pull Request."
+    - Select your fork and branch, and submit your pull request.
 
 ## License
 
-This project is licensed under the MIT License. See the LICENSE file for more details.
+This project is licensed under the MIT License. See the [LICENSE]LICENSE file for more details.
