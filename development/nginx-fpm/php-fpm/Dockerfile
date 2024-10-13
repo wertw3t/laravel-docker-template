@@ -24,35 +24,57 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     bcmath \
     soap \
     && pecl install redis xdebug \
-    && docker-php-ext-enable redis xdebug\
+    && docker-php-ext-enable redis \
     && apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Configure Xdebug by appending settings to the existing INI file
-RUN echo "xdebug.mode=develop,coverage,debug,profile" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
-    && echo "xdebug.idekey=docker" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
-    && echo "xdebug.start_with_request=yes" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
-    && echo "xdebug.log=/dev/stdout" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
-    && echo "xdebug.log_level=0" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
-    && echo "xdebug.client_port=9003" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
-    && echo "xdebug.client_host=host.docker.internal" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+# Use ARG to define environment variables passed from the Docker build command or Docker Compose.
+ARG XDEBUG_ENABLED
+ARG XDEBUG_MODE
+ARG XDEBUG_HOST
+ARG XDEBUG_IDE_KEY
+ARG XDEBUG_LOG
+ARG XDEBUG_LOG_LEVEL
+
+# Configure Xdebug if enabled
+RUN if [ "${XDEBUG_ENABLED}" = "true" ]; then \
+    docker-php-ext-enable xdebug && \
+    echo "xdebug.mode=${XDEBUG_MODE}" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini && \
+    echo "xdebug.idekey=${XDEBUG_IDE_KEY}" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini && \
+    echo "xdebug.log=${XDEBUG_LOG}" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini && \
+    echo "xdebug.log_level=${XDEBUG_LOG_LEVEL}" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini && \
+    echo "xdebug.client_host=${XDEBUG_HOST}" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini ; \
+    echo "xdebug.start_with_request=yes" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini ; \
+fi
 
 # Copy the initialization script
-COPY ./entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY ./entrypoint.dev.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Set environment variables for user and group ID
 ARG UID=1000
 ARG GID=1000
 
-# Create a user with the same UID and GID as the host user
-RUN groupadd -g ${GID} www && \
-    useradd -u ${UID} -g www -m www
+# Create a new user with the specified UID and GID, reusing an existing group if GID exists
+RUN if getent group ${GID}; then \
+      group_name=$(getent group ${GID} | cut -d: -f1); \
+      useradd -m -u ${UID} -g ${GID} -s /bin/bash www; \
+    else \
+      groupadd -g ${GID} www && \
+      useradd -m -u ${UID} -g www -s /bin/bash www; \
+      group_name=www; \
+    fi
 
-# Set working directory
+# Dynamically update php-fpm to use the new user and group
+RUN sed -i "s/user = www-data/user = www/g" /usr/local/etc/php-fpm.d/www.conf && \
+    sed -i "s/group = www-data/group = $group_name/g" /usr/local/etc/php-fpm.d/www.conf
+
+
+# Set the working directory
 WORKDIR /var/www
 
-# Change ownership of the working directory to the new user
-RUN chown -R www:www /var/www
+# Copy the entrypoint script
+COPY ./entrypoint.dev.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Change the default command to run the entrypoint script
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

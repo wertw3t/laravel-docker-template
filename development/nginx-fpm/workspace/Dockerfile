@@ -31,12 +31,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
     && apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Create a user with the same UID and GID as the host user
-RUN groupadd -g ${GID} www && \
-    useradd -u ${UID} -g www -m www && \
+# If the group already exists, use it; otherwise, create the 'www' group
+RUN if getent group ${GID}; then \
+      useradd -m -u ${UID} -g ${GID} -s /bin/bash www; \
+    else \
+      groupadd -g ${GID} www && \
+      useradd -m -u ${UID} -g www -s /bin/bash www; \
+    fi && \
     usermod -aG sudo www && \
-    echo 'www ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers && \
-    chown -R www:www /home/www
+    echo 'www ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 # Switch to the non-root user to install NVM and Node.js
 USER www
