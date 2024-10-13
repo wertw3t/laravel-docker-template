@@ -52,6 +52,12 @@ services:
       args:
         UID: ${UID}
         GID: ${GID}
+        XDEBUG_ENABLED: ${XDEBUG_ENABLED}
+        XDEBUG_MODE: ${XDEBUG_MODE}
+        XDEBUG_HOST: ${XDEBUG_HOST}
+        XDEBUG_IDE_KEY: ${XDEBUG_IDE_KEY}
+        XDEBUG_LOG: ${XDEBUG_LOG}
+        XDEBUG_LOG_LEVEL: ${XDEBUG_LOG_LEVEL}
     tty: true  # Enables an interactive terminal
     stdin_open: true  # Keeps standard input open for 'docker exec'
     env_file:
