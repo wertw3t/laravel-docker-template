@@ -4,7 +4,7 @@
 
 - [Overview](#overview)
 - [Project Structure](#project-structure)
-  - [Example App](#example-app)
+  - [Directory Structure](#directory-structure)
   - [Development Environment](#development-environment)
   - [Production Environment](#production-environment)
 - [Getting Started](#getting-started)
