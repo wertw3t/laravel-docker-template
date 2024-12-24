@@ -29,7 +29,8 @@ services:
     # For the php-fpm service, we will create a custom image to install the necessary PHP extensions and setup proper permissions.
     build:
       context: .
-      dockerfile: ./docker/production/php-fpm/Dockerfile
+      dockerfile: ./docker/common/php-fpm/Dockerfile
+      target: production
     restart: unless-stopped
     volumes:
       - laravel-storage-production:/var/www/storage  # Mount the storage volume
