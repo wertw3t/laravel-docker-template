@@ -12,6 +12,9 @@ if [ ! "$(ls -A /var/www/storage)" ]; then
   chown -R www-data:www-data /var/www/storage
 fi
 
+# Remove storage-init directory
+rm -rf /var/www/storage-init
+
 # Run Laravel migrations
 # -----------------------------------------------------------
 # Ensure the database schema is up to date.

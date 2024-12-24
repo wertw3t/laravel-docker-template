@@ -23,6 +23,7 @@
 **/charts
 **/docker-compose*
 **/compose.y*ml
+**/compose.*.y*ml
 !**/composer.json
 !**/composer.lock
 **/Dockerfile*
