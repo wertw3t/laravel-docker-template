@@ -1,5 +1,5 @@
 # Stage 1: Build environment and Composer dependencies
-FROM php:8.3-fpm AS builder
+FROM php:8.4-fpm AS builder
 
 # Install system dependencies and PHP extensions required for Laravel + MySQL/PostgreSQL support
 # Some dependencies are required for PHP extensions only in the build stage
@@ -27,7 +27,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && docker-php-ext-enable redis \
     && apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-   
+
 # Set the working directory inside the container
 WORKDIR /var/www
 
@@ -39,9 +39,9 @@ WORKDIR /var/www
 # Artisan commands like `php artisan package:discover`. If the
 # application code (including the `artisan` file) is not
 # present, these commands will fail, leading to build errors.
-# 
-# By copying the entire application code before running 
-# `composer install`, we ensure that all necessary files are 
+#
+# By copying the entire application code before running
+# `composer install`, we ensure that all necessary files are
 # available, allowing these scripts to run successfully.
 # In other cases, it would be possible to copy composer files
 # first, to leverage Docker's layer caching mechanism.
@@ -54,7 +54,7 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 
 
 # Stage 2: Production environment
-FROM php:8.3-fpm AS production
+FROM php:8.4-fpm AS production
 
 # Install only runtime libraries needed in production
 # libfcgi-bin and procps are required for the php-fpm-healthcheck script
